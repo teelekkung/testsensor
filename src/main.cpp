@@ -82,14 +82,14 @@ void setup() {
 
   Serial.println("Starting Task ... ") ;
   Serial.println() ;
-  xTaskCreate( rgbstripTask,  "rgbstrip", 1500, NULL, 1, &rgbstripHand  ) ;
-  xTaskCreate( ledpwmTask,    "ledpwm",   1500, NULL, 1, &ledpwmHand    ) ;
-  xTaskCreate( temp6000Task,  "temp6000", 1500, NULL, 1, &temp6000Hand  ) ;
-  xTaskCreate( cputempTask,   "cpu_temp", 1500, NULL, 1, &cputempHand   ) ;
-  xTaskCreate( aht10Task,     "aht10",    3000, NULL, 1, &aht10Hand     ) ;
-  xTaskCreate( bmp280Task,    "bpm280",   3000, NULL, 1, &bmp280Hand    ) ;
-  xTaskCreate( i2cdisplayTask,"i2cdisplay",3000,NULL, 1, &i2cdisplayHand) ;
-  // xTaskCreatePinnedToCore( wifimanagedTask, "wifimanaged", 10000, NULL, 1, &wifimanagedHand , 0) ;
+  xTaskCreatePinnedToCore( rgbstripTask,  "rgbstrip", 1500, NULL, 1, &rgbstripHand  , 1) ;
+  xTaskCreatePinnedToCore( ledpwmTask,    "ledpwm",   1500, NULL, 1, &ledpwmHand    , 1) ;
+  xTaskCreatePinnedToCore( temp6000Task,  "temp6000", 1500, NULL, 1, &temp6000Hand  , 1) ;
+  xTaskCreatePinnedToCore( cputempTask,   "cpu_temp", 1500, NULL, 1, &cputempHand   , 1) ;
+  xTaskCreatePinnedToCore( aht10Task,     "aht10",    3000, NULL, 1, &aht10Hand     , 1) ;
+  xTaskCreatePinnedToCore( bmp280Task,    "bpm280",   3000, NULL, 1, &bmp280Hand    , 1) ;
+  xTaskCreatePinnedToCore( i2cdisplayTask,"i2cdisplay",3000,NULL, 1, &i2cdisplayHand, 1) ;
+  xTaskCreatePinnedToCore( wifimanagedTask, "wifimanaged", 10000, NULL, 1, &wifimanagedHand , 0) ;
 }
 
 void loop(){

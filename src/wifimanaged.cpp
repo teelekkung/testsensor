@@ -15,7 +15,7 @@ void configModeCallback (WiFiManager *myWiFiManager) {
 
 void wifimanagedTask(void *parameter) {
     wifiManager.setConfigPortalBlocking(false);
-    wifiManager.setConfigPortalTimeout(60);
+    //wifiManager.setConfigPortalTimeout(60);
     wifiManager.setAPCallback(configModeCallback);
     if(wifiManager.autoConnect("AutoConnectAP")){
         Serial.println("connected...yeey :)");
