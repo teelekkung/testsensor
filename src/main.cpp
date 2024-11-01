@@ -22,6 +22,7 @@ void setup() {
   Serial.begin(115200) ;
   Serial.println();
   Serial.println("Esp32s3 Booting up") ;
+  I2C_LCD.begin(10, 11, 100000);
   Serial.println();
   delay(1000);
 
@@ -33,7 +34,7 @@ void setup() {
 
   Serial.print("Starting up FastLED WS2812 ... ") ;
   FastLED.addLeds<WS2812, RGB_PIN, GRB>(leds, RGB_NUMS).setCorrection(TypicalLEDStrip) ;
-  FastLED.setBrightness(32) ;
+  FastLED.setBrightness(255) ;
   FastLED.clear() ;
   delay(1000);
   Serial.println("Done") ;
@@ -65,7 +66,6 @@ void setup() {
   delay(1000) ;
 
   Serial.print("Starting up I2C display ... ") ;
-  I2C_LCD.begin(38, 39, 100000);
   lcd.begin(16, 2, I2C_LCD) ;
   lcd.setBacklight(255);
   lcd.setCursor(0, 0);

@@ -12,16 +12,16 @@
     // Define pins here
     //#define AHT10     sda8, scl9
     //#define BMP280    sda8, scl9
-    #define TEMP6000    1
-    #define LED_PWM     47
-    #define TTP223      6
-    #define relay       7
-    #define led1 40
-    #define led2 41
-    #define led3 42
+    #define TEMP6000    4
     // FastLED
-    #define RGB_NUMS  9
-    #define RGB_PIN   5
+    #define RGB_NUMS    9
+    #define RGB_PIN     5
+    #define TTP223      6
+    #define LED_PWM     7
+    #define relay       15
+    #define led1 16
+    #define led2 17
+    #define led3 18 
 
     extern LiquidCrystal_PCF8574 lcd ;
     extern Adafruit_AHTX0 aht;
