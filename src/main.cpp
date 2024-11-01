@@ -5,16 +5,20 @@
 #include "aht10.h"
 #include "bmp280.h"
 #include "cputemp.h"
+#include "wifimanaged.h"
+#include "i2cdeiplay.h"
 
-TaskHandle_t rgbstripHand, ledpwmHand, temp6000Hand, aht10Hand, bmp280Hand, cputempHand ;
-QueueHandle_t queue;
+TaskHandle_t rgbstripHand, ledpwmHand, temp6000Hand, aht10Hand, bmp280Hand, cputempHand , wifimanagedHand, i2cdisplayHand;
+QueueHandle_t sensorDataQueue;
 Adafruit_AHTX0 aht;
 Adafruit_BMP280 bmp;
 CRGB leds[RGB_NUMS];
+LiquidCrystal_PCF8574 lcd(0x25);
+TwoWire I2C_LCD = TwoWire(1);
 int bootstatus = 0 ;
 
 void setup() {
-  // setup RTOS
+
   Serial.begin(115200) ;
   Serial.println();
   Serial.println("Esp32s3 Booting up") ;
@@ -29,6 +33,7 @@ void setup() {
 
   Serial.print("Starting up FastLED WS2812 ... ") ;
   FastLED.addLeds<WS2812, RGB_PIN, GRB>(leds, RGB_NUMS).setCorrection(TypicalLEDStrip) ;
+  FastLED.setBrightness(32) ;
   FastLED.clear() ;
   delay(1000);
   Serial.println("Done") ;
@@ -58,26 +63,43 @@ void setup() {
   delay(1000) ;
   Serial.println("Done") ;
   delay(1000) ;
-  
+
+  Serial.print("Starting up I2C display ... ") ;
+  I2C_LCD.begin(38, 39, 100000);
+  lcd.begin(16, 2, I2C_LCD) ;
+  lcd.setBacklight(255);
+  lcd.setCursor(0, 0);
+  lcd.print("Sahakiyat Sensor");
+  delay(1000) ;
+  Serial.println("Done") ;
+  delay(1000) ;
+
+  sensorDataQueue = xQueueCreate(4, sizeof(SensorData));
+  if (sensorDataQueue == NULL) {
+        Serial.println("Error creating the queue");
+        while (true); // Loop forever if the queue was not created
+  }
+
   Serial.println("Starting Task ... ") ;
   Serial.println() ;
-  xTaskCreate( temp6000Task,  "temp6000", 1500, NULL, 1, &temp6000Hand  ) ;
   xTaskCreate( rgbstripTask,  "rgbstrip", 1500, NULL, 1, &rgbstripHand  ) ;
-  xTaskCreate( cputempTask,   "cpu_temp", 1500, NULL, 1, &cputempHand   ) ;
   xTaskCreate( ledpwmTask,    "ledpwm",   1500, NULL, 1, &ledpwmHand    ) ;
+  xTaskCreate( temp6000Task,  "temp6000", 1500, NULL, 1, &temp6000Hand  ) ;
+  xTaskCreate( cputempTask,   "cpu_temp", 1500, NULL, 1, &cputempHand   ) ;
   xTaskCreate( aht10Task,     "aht10",    3000, NULL, 1, &aht10Hand     ) ;
-  xTaskCreate( bmp280Task,    "bpm280",   3000, NULL, 1, &bmp280Hand    ) ;  
+  xTaskCreate( bmp280Task,    "bpm280",   3000, NULL, 1, &bmp280Hand    ) ;
+  xTaskCreate( i2cdisplayTask,"i2cdisplay",3000,NULL, 1, &i2cdisplayHand) ;
+  // xTaskCreatePinnedToCore( wifimanagedTask, "wifimanaged", 10000, NULL, 1, &wifimanagedHand , 0) ;
 }
 
 void loop(){
   // Just Nothing~~
   /*
-  UBaseType_t taskaht10 = uxTaskGetStackHighWaterMark(TAHT10);
-  Serial.print("Taht10 : ");
-  Serial.println(taskaht10) ;
-  UBaseType_t taskbmp280 = uxTaskGetStackHighWaterMark(TBMP280);
-  Serial.print("TBMP280 : ");
-  Serial.println(taskbmp280) ;
-  delay(500) ;
+  UBaseType_t i2cdisplayram = uxTaskGetStackHighWaterMark(i2cdisplayHand);
+  Serial.print("i2cdisplayTask : ");
+  Serial.print(xPortGetCoreID());
+  Serial.print(" raam ");
+  Serial.println(i2cdisplayram) ;
+  delay(1000) ;
   */
 }
