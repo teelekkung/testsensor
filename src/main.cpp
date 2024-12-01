@@ -26,10 +26,12 @@ void loop() {
     if(millis() - ploop1 >= loop1) {
         ploop1 = millis() ;
         rgbstriprun() ;
+        pulseled();
     }
     if(millis() - ploop2 >= loop2) {
         ploop2 = millis() ;
         aht10run() ;
         bmp280run() ;
+        i2cdisplayrun() ;
     }
 }

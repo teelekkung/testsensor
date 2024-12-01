@@ -9,5 +9,6 @@
         #endif
 
     extern void i2cdisplayinit() ;
+    extern void i2cdisplayrun() ;
 
 #endif

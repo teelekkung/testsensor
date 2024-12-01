@@ -30,4 +30,6 @@
 
     extern void displayCenteredText(const String& text, uint8_t row) ;
 
+    extern sensors_event_t humidity, temp ;
+
 #endif

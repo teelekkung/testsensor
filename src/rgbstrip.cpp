@@ -3,8 +3,9 @@
 #include "rgbstrip.h"
 
 CRGB leds[RGB_NUMS];
-uint16_t i, j = 0 ;
+uint16_t i, j, k = 0 ;
 byte *c ;
+int state = 0;
 
 void rgbstripinit() {
     #ifdef debug
@@ -27,6 +28,42 @@ void rgbstripinit() {
     lcd.clear();
 }
 
+void rgbstriprun() {
+    if(j < 256) {
+    for(i=0; i < RGB_NUMS; i++) {
+        c = Wheel(((i * 256 / RGB_NUMS) + j) & 255) ;
+        leds[RGB_NUMS - 1 - i].setRGB(*c, *(c+1), *(c+2)) ;
+    }
+    FastLED.show() ;
+    }
+    j++ ;
+    if(j == 256) {
+    j = 0 ;
+    }
+}
+
+void pulseled(){
+  if(state == 1) {
+    if(k < 256) {
+      analogWrite(LED_PWM, k);
+    }
+    k += 1 ;
+    if(k == 256){
+      state = 0 ;
+      k = 1 ;
+    }
+  } else {
+    if(k < 256) {
+      analogWrite(LED_PWM, 255 - k);
+    }
+    k += 1 ;
+    if(k == 256){
+      state = 1 ;
+      k = 1 ;
+    }
+  } 
+}
+
 byte *Wheel(byte WheelPosition) {
     static byte c[3];
     if(WheelPosition < 85) {
@@ -45,18 +82,4 @@ byte *Wheel(byte WheelPosition) {
         c[2] = 255 - WheelPosition * 3;
     }
     return c;
-}
-
-void rgbstriprun() {
-    if(j < 256) {
-    for(i=0; i < RGB_NUMS; i++) {
-        c = Wheel(((i * 256 / RGB_NUMS) + j) & 255) ;
-        leds[RGB_NUMS - 1 - i].setRGB(*c, *(c+1), *(c+2)) ;
-    }
-    FastLED.show() ;
-    }
-    j++ ;
-    if(j == 256) {
-    j = 0 ;
-    }
 }

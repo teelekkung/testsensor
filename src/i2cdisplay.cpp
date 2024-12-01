@@ -3,6 +3,7 @@
 #include "i2cdisplay.h"
 
 LiquidCrystal_PCF8574 lcd(i2clcdaddr);
+extern sensors_event_t humidity, temp ;
 
 void i2cdisplayinit() {
     #ifdef debug
@@ -18,6 +19,11 @@ void i2cdisplayinit() {
     displayCenteredText("By 66200408", 1) ;
     delay(1000) ;
     lcd.clear() ;
+}
+
+void i2cdisplayrun() {
+    lcd.setCursor(0,0) ;
+    lcd.print(temp.temperature) ;
 }
 
 void displayCenteredText(const String& text, uint8_t row) {

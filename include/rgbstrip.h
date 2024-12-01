@@ -8,5 +8,7 @@
     
     extern void rgbstripinit() ;
     extern void rgbstriprun() ;
+    extern void pulseled() ;
+    extern byte *Wheel(byte WheelPosition) ;
 
 #endif
