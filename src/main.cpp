@@ -1,6 +1,6 @@
 #include "gheader.h"
 #include "gvalue.h"
-#include "myfuntion.h"
+#include "gfuntion.h"
 
 unsigned long ploop1 = 0 ;
 const long loop1 = 20 ;
@@ -17,6 +17,7 @@ void setup() {
     i2cdisplayinit() ;
     i2crtcinit() ;
     rgbstripinit() ;
+    aht10init() ;
 }
 
 void loop() {
@@ -25,5 +26,8 @@ void loop() {
         ploop1 = millis() ;
         rgbstriprun() ;
     }
-    
+    if(millis() - ploop2 >= loop2) {
+        ploop2 = millis() ;
+        aht10run() ;
+    }
 }
