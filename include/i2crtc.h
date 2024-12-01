@@ -1,5 +1,5 @@
-#ifndef mytwowire_h
-    #define mytwowire_h
+#ifndef i2crtc_h
+    #define i2crtc_h
     
         #ifndef gheader_h
             #define gheader_h
@@ -8,6 +8,6 @@
             #define gvalue_h
         #endif
 
-    extern void mytwowireinit() ;
+    extern void i2crtcinit() ;
 
 #endif

@@ -5,7 +5,10 @@
 TwoWire ahtbmp = TwoWire(0) ;
 TwoWire i2clcd = TwoWire(1) ;
 
-void mytwowiresetup() {
+void mytwowireinit() {
+    #ifdef debug
+        Serial.println("Starting TwoWire Instant");
+    #endif
     ahtbmp.begin(ahtbmpsda, ahtbmpscl) ;
     #ifdef debug
         Serial.println("Successfull create ahtbmp i2c bus");

@@ -28,4 +28,6 @@
     extern WiFiClient espClient ;
     extern PubSubClient client ;
 
+    extern void displayCenteredText(const String& text, uint8_t row) ;
+
 #endif
