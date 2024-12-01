@@ -18,6 +18,7 @@ void setup() {
     i2crtcinit() ;
     rgbstripinit() ;
     aht10init() ;
+    bmp280init() ;
 }
 
 void loop() {
@@ -29,5 +30,6 @@ void loop() {
     if(millis() - ploop2 >= loop2) {
         ploop2 = millis() ;
         aht10run() ;
+        bmp280run() ;
     }
 }

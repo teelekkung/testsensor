@@ -6,5 +6,6 @@
     #include "i2crtc.h"
     #include "rgbstrip.h"
     #include "aht10.h"
+    #include "bmp280.h"
 
 #endif
