@@ -9,5 +9,6 @@
         #endif
 
     extern void i2crtcinit() ;
+    extern void i2crtcrun() ;
 
 #endif

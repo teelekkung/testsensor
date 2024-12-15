@@ -3,7 +3,7 @@
 #include "i2cdisplay.h"
 
 LiquidCrystal_PCF8574 lcd(i2clcdaddr);
-extern sensors_event_t humidity, temp ;
+// extern sensors_event_t humidity, temp ;
 
 void i2cdisplayinit() {
     #ifdef debug

@@ -32,6 +32,6 @@ void loop() {
         ploop2 = millis() ;
         aht10run() ;
         bmp280run() ;
-        i2cdisplayrun() ;
+        i2crtcrun() ;
     }
 }

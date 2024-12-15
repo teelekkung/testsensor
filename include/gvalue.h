@@ -15,7 +15,7 @@
     #define i2clcdscl   11
     #define i2clcdaddr  0x25
 
-    #define debug
+    // #define debug
 
     extern WiFiManager wifiManager;
     extern TwoWire ahtbmp ;
