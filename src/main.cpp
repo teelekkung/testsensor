@@ -51,26 +51,65 @@ void setup() {
     // put your setup code here, to run once:
     Serial.begin(115200) ;
     // // //
-    ahtbmp.begin(ahtbmpsda, ahtbmpscl) ;
-    i2clcd.begin(i2clcdsda, i2clcdscl) ;
-    // // //
     pinMode(TEMP6000, INPUT) ;
-    pinMode(TTP223, INPUT) ;
+    pinMode(TTP223, INPUT) ;    
     // // //
-    rtc.begin(&i2clcd) ;
+    if(ahtbmp.begin(ahtbmpsda, ahtbmpscl)) {
+        Serial.println("Successfull create ahtbmp i2c bus") ;
+    } else {
+        Serial.println("Couldn't create ahtbmp bus") ;
+        while (!digitalRead(TTP223)) delay(10) ;
+        Serial.println("BYPASS ") ;
+        delay(1000) ;
+    }
+    if(i2clcd.begin(i2clcdsda, i2clcdscl)) {
+        Serial.println("Successfull create i2clcd i2c bus") ;
+    } else {
+        Serial.println("Couldn't create i2clcd bus") ;
+        while (!digitalRead(TTP223)) delay(10) ;
+        Serial.println("BYPASS ") ;
+        delay(1000) ;
+    }
+    // // //
+    if(rtc.begin(&i2clcd)) {
+        Serial.println("Successfull detect I2C RTC") ;
+        /*  if (!rtc.isrunning()) {
+        Serial.println("RTC is NOT running, setting the time...");
+        rtc.adjust(DateTime(F(__DATE__), F(__TIME__))); // Set RTC to the time the sketch was compiled (UTC)
+        } */
+    } else {
+        Serial.println("Couldn't find RTC") ;
+        while (!digitalRead(TTP223)) delay(10) ;
+        Serial.println("BYPASS ") ;
+    }
     // // //
     lcd.begin(16, 2, i2clcd) ;
     lcd.setBacklight(255) ;
     lcd.clear() ;
     // // //
-    aht.begin(&ahtbmp) ;
+    if(aht.begin(&ahtbmp)) {
+        Serial.println("Successfull detect I2C Aht10") ;
+    } else {
+        Serial.print("Could not find AHT? Check wiring ");
+        while (!digitalRead(TTP223)) delay(10) ;
+        Serial.print("BYPASS ") ;
+        delay(1000) ;
+    }
     // // //
-    bmp.begin() ;
-    bmp.setSampling(Adafruit_BMP280::MODE_FORCED,         /* Operating Mode. */
-                        Adafruit_BMP280::SAMPLING_X2,     /* Temp. oversampling */
-                        Adafruit_BMP280::SAMPLING_X16,    /* Pressure oversampling */
-                        Adafruit_BMP280::FILTER_X16,      /* Filtering. */
-                        Adafruit_BMP280::STANDBY_MS_500) ;/* Standby time. */
+    if(bmp.begin()) {
+        Serial.println("Successfull detect I2C Bmp280") ;
+        bmp.setSampling(Adafruit_BMP280::MODE_FORCED,         /* Operating Mode. */
+                                Adafruit_BMP280::SAMPLING_X2,     /* Temp. oversampling */
+                                Adafruit_BMP280::SAMPLING_X16,    /* Pressure oversampling */
+                                Adafruit_BMP280::FILTER_X16,      /* Filtering. */
+                                Adafruit_BMP280::STANDBY_MS_500) ;/* Standby time. */
+    } else {
+        Serial.print(F("Could not find BMP? Check wiring "));
+        while (!digitalRead(TTP223)) delay(10);
+        Serial.print("BYPASS ") ;
+        delay(1000) ;
+    }
+    // // //
     if(wifiManager.autoConnect("AutoConnectAP")) {
        while (!client.connected()) {
             client.setServer(mqtt_broker, mqtt_port);
