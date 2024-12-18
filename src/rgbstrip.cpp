@@ -13,7 +13,7 @@ void rgbstripinit() {
     #endif
     displayCenteredText("Setup RGB", 0) ;
     FastLED.addLeds<WS2812, RGB_PIN, GRB>(leds, RGB_NUMS).setCorrection(TypicalLEDStrip) ;
-    FastLED.setBrightness(255) ;
+    FastLED.setBrightness(32) ;
     FastLED.clear() ;
     #ifdef debug
         Serial.println("Successfull create RGB Instant") ;
