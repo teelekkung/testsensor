@@ -252,11 +252,21 @@ void doaht(){
     aht.getEvent(&humidity, &temp) ;// populate temp and humidity objects with fresh data
     Serial.print("AHT20temp : "); Serial.print(temp.temperature); Serial.println(" *C") ;
     Serial.print("AHT20humi : "); Serial.print(humidity.relative_humidity); Serial.println("% rH") ;
-    char tempStr[8];
-    dtostrf(temp.temperature, 6, 2, tempStr); 
-    client.publish("Temp", tempStr);
+    char temptemp[8];
+    char temphumi[8];
+    dtostrf(temp.temperature, 6, 2, temptemp); 
+    dtostrf(humidity.relative_humidity, 6, 2, temphumi); 
+    client.publish("Temp", temptemp);
     display.setCursor(0,0) ;
-    display.println(tempStr) ;
+    display.print(temptemp) ;
+    display.println(" *C") ;
+    display.print(temphumi) ;
+    display.println(" rH") ;
+    int x = analogRead(TEMP6000) ;
+    x = map(x, 0, 4095, 0, 100) ;
+    display.print(" L ") ;
+    display.print(x) ;
+    display.println(" %") ;
     display.display();
 }
 
