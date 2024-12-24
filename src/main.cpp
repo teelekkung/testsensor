@@ -17,7 +17,7 @@
 #define ahtbmpsda   8
 #define ahtbmpscl   9
 #define i2clcdsda   10
-#define i2clcdscl   11
+#define i2clcdscl   11 
 #define i2clcdaddr  0x25
 #define ledbit1     15
 #define ledbit2     16
@@ -26,22 +26,15 @@
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
 #define OLED_RESET     -1 // Reset pin # (or -1 if sharing Arduino reset pin)
 #define SCREEN_ADDRESS 0x3C ///< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32
-
+// #define debug
 void callback(char *topic, byte *payload, unsigned int length) ;
-void dotemp() ;
-void doaht() ;
-void dobmp() ;
-void dorgb() ;
+void dotemp(), doaht(), dobmp(), dorgb(), dortc(), doled(), dopwm(), docpu(),saveParamsCallback() ;
 byte *Wheel(byte WheelPosition) ;
-void dortc() ;
-void doled() ;
-void dopwm() ;
-void docpu() ;
 
-const int TIMEZONE_OFFSET = 7 ;
-const char *mqtt_broker = "10.42.0.1";
-const int mqtt_port = 1883;
-const char *topic = "ALERT";
+// const int TIMEZONE_OFFSET = 7 ;
+// const char *mqtt_broker = "10.42.0.1";
+// const int mqtt_port = 1883;
+// const char *topic = "ALERT";
 const char *datadsent ;
 uint16_t i, j, k, m = 0 ;
 int l, direction = 1 ;
@@ -63,7 +56,11 @@ Adafruit_AHTX0 aht ;
 Adafruit_BMP280 bmp(&ahtbmp) ;
 CRGB leds[RGB_NUMS] ;
 WiFiManager wifiManager ;
-// WiFiManagerParameter custom_mqtt_server("server", "mqtt server", "", 40) ;
+WiFiManagerParameter custom_mqtt_server("Server", "mqtt server", "10.42.0.1", 16) ;
+WiFiManagerParameter custom_mqtt_port("Port", "mqtt port", "1883", 6) ;
+WiFiManagerParameter custom_mqtt_topic("topic", "mqtt topic", "ALERT", 40) ;
+WiFiManagerParameter custom_mqtt_publish("publish", "mqtt publish", "Status", 40) ;
+WiFiManagerParameter custom_timezone("timezone", "timezone (GMT)", "7", 5) ;
 WiFiClient espClient ;
 PubSubClient client(espClient) ;
 
@@ -79,8 +76,9 @@ void setup() {
     pinMode(ledbit2, OUTPUT) ;
     pinMode(ledbit3, OUTPUT) ;
     // TwoWire //
+    Serial.println("Starting I2C RTC Instant") ;
     if(ahtbmp.begin(ahtbmpsda, ahtbmpscl)) {
-        Serial.println("Successfull create ahtbmp i2c bus") ;
+        Serial.println("Successfull create ahtbmp i2c bus");
     } else {
         Serial.println("Couldn't create ahtbmp bus") ;
         while (!digitalRead(TTP223)) delay(10) ;
@@ -88,35 +86,55 @@ void setup() {
         delay(1000) ;
     }
     if(i2clcd.begin(i2clcdsda, i2clcdscl)) {
-        Serial.println("Successfull create i2clcd i2c bus") ;
+        Serial.println("Successfull create i2clcd i2c bus");
     } else {
         Serial.println("Couldn't create i2clcd bus") ;
         while (!digitalRead(TTP223)) delay(10) ;
         Serial.println("BYPASS ") ;
         delay(1000) ;
     }
+    // I2C LCD 12x6 //
+    Serial.println("Starting I2C display Instant") ;
+    lcd.begin(16, 2, i2clcd) ;
+    lcd.setBacklight(255) ;
+    lcd.clear() ;
+    Serial.println("Successfull detect I2C display") ;
+    lcd.setCursor(0,0) ;
+    lcd.print("  I2C Is Alive  ") ;
+    lcd.setCursor(0,1) ;
+    lcd.print("  By  66200408  ") ;
+    delay(1000) ;
+    lcd.clear() ;
     // RTCds1307 //
+    Serial.println("Starting I2C RTC Instant") ;
+    lcd.setCursor(0,0) ;
+    lcd.print("   Setup  RTC   ");
     if(rtc.begin(&i2clcd)) {
-        Serial.println("Successfull detect I2C RTC") ;
         /*  if (!rtc.isrunning()) {
         Serial.println("RTC is NOT running, setting the time...");
         rtc.adjust(DateTime(F(__DATE__), F(__TIME__))); // Set RTC to the time the sketch was compiled (UTC)
         } */
+        delay(1000) ;
+        Serial.println("Successfull detect I2C RTC") ;
+        lcd.setCursor(0,1) ;
+        lcd.print("      Done      ");
     } else {
+        lcd.setCursor(0,1) ;
+        lcd.print("     Failed     ");
         Serial.println("Couldn't find RTC") ;
         while (!digitalRead(TTP223)) delay(10) ;
+        delay(1000) ;
         Serial.println("BYPASS ") ;
+        lcd.setCursor(0,1) ;
+        lcd.print("     Bypass     ");
     }
-    // I2C LCD 12x6 //
-    lcd.begin(16, 2, i2clcd) ;
-    lcd.setBacklight(255) ;
+    delay(1000) ;
     lcd.clear() ;
-    lcd.print("66200408 I2C DEV") ;
-    lcd.setCursor(0,1) ;
-    lcd.print("Sahakiat Teelek") ;
     // I2C OLED //
+    Serial.println("Starting I2C OLED Instant") ;
+    lcd.setCursor(0,0) ;
+    lcd.print("   Setup OLED   ");
     if(display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
-        Serial.println("Successfull detect I2C OLED") ;
         display.clearDisplay();
         display.setTextSize(2);
         display.setTextColor(SSD1306_WHITE);
@@ -125,36 +143,74 @@ void setup() {
         display.println("I2COLED By\n66200408") ;
         display.display();
         display.clearDisplay();
-        delay(2000);
+        delay(1000);
+        Serial.println("Successfull detect I2C OLED") ;
+        lcd.setCursor(0,1) ;
+        lcd.print("      Done      ");
     } else {
+        lcd.setCursor(0,1) ;
+        lcd.print("     Failed     ");
         Serial.println(F("SSD1306 allocation failed"));
         while (!digitalRead(TTP223)) delay(10) ;
-        Serial.println("BYPASS ") ;
-    }
-    // AHT10 //
-    if(aht.begin(&ahtbmp)) {
-        Serial.println("Successfull detect I2C Aht10") ;
-    } else {
-        Serial.print("Could not find AHT? Check wiring ");
-        while (!digitalRead(TTP223)) delay(10) ;
-        Serial.print("BYPASS ") ;
         delay(1000) ;
+        Serial.println("BYPASS ") ;
+        lcd.setCursor(0,1) ;
+        lcd.print("     Bypass     ");
     }
+    delay(1000) ;
+    lcd.clear() ;
+    // AHT10 //
+    Serial.println("Starting I2C AHT10 Instant") ;
+    lcd.setCursor(0,0) ;
+    lcd.print("   Setup  AHT   ");
+    if(aht.begin(&ahtbmp)) {
+        delay(1000);
+        Serial.println("Successfull detect I2C Aht10") ;
+        lcd.setCursor(0,1) ;
+        lcd.print("      Done      ");
+    } else {
+        lcd.setCursor(0,1) ;
+        lcd.print("     Failed     ");
+        Serial.println("Could not find AHT? Check wiring ");
+        while (!digitalRead(TTP223)) delay(10) ;
+        delay(1000) ;
+        Serial.println("BYPASS ") ;
+        lcd.setCursor(0,1) ;
+        lcd.print("     Bypass     ");
+    }
+    delay(1000) ;
+    lcd.clear() ;
     // BMP280 //
+    Serial.println("Starting I2C BMP280 Instant") ;
+    lcd.setCursor(0,0) ;
+    lcd.print("   Setup  BMP   ");
     if(bmp.begin()) {
-        Serial.println("Successfull detect I2C Bmp280") ;
         bmp.setSampling(Adafruit_BMP280::MODE_FORCED,         /* Operating Mode. */
                                 Adafruit_BMP280::SAMPLING_X2,     /* Temp. oversampling */
                                 Adafruit_BMP280::SAMPLING_X16,    /* Pressure oversampling */
                                 Adafruit_BMP280::FILTER_X16,      /* Filtering. */
                                 Adafruit_BMP280::STANDBY_MS_500) ;/* Standby time. */
+        delay(1000);
+        Serial.println("Successfull detect I2C Bmp280") ;
+        lcd.setCursor(0,1) ;
+        lcd.print("      Done      ");
+        
     } else {
-        Serial.print(F("Could not find BMP? Check wiring "));
-        while (!digitalRead(TTP223)) delay(10);
-        Serial.print("BYPASS ") ;
+        lcd.setCursor(0,1) ;
+        lcd.print("     Failed     ");
+        Serial.println("Could not find BMP? Check wiring ");
+        while (!digitalRead(TTP223)) delay(10) ;
         delay(1000) ;
+        Serial.println("BYPASS ") ;
+        lcd.setCursor(0,1) ;
+        lcd.print("     Bypass     ");
     }
+    delay(1000) ;
+    lcd.clear() ;
     // 8bit RGB2812 //
+    Serial.println("Starting FastLED Instant") ;
+    lcd.setCursor(0,0) ;
+    lcd.print("  Setup FastLED ");
     FastLED.addLeds<WS2812, RGB_PIN, GRB>(leds, RGB_NUMS).setCorrection(TypicalLEDStrip) ;
     FastLED.setBrightness(255) ;
     FastLED.clear() ;
@@ -162,12 +218,30 @@ void setup() {
         leds[i].setRGB(0, 0, 0) ;
     }
     FastLED.show() ;
+    delay(1000);
+    Serial.println("Successfull create FastLED Instant") ;
+    lcd.setCursor(0,1) ;
+    lcd.print("      Done      ");
+    delay(1000) ;
+    lcd.clear() ;
     // WiFi,MQTT //
-    if(wifiManager.autoConnect("AutoConnectAP")) {
-        lcd.clear();
+    Serial.println("Starting WiFiManager Instant") ;
+    lcd.setCursor(0,0) ;
+    lcd.print("   Setup  WiFi  ");
+    wifiManager.setConnectTimeout(30); // how long to try to connect for before continuing
+    wifiManager.setConfigPortalTimeout(60); // auto close configportal after n seconds
+    wifiManager.addParameter(&custom_mqtt_server);
+    wifiManager.addParameter(&custom_mqtt_port);
+    wifiManager.addParameter(&custom_mqtt_topic);
+    wifiManager.addParameter(&custom_mqtt_publish);
+    wifiManager.addParameter(&custom_timezone);
+    wifiManager.setSaveParamsCallback(saveParamsCallback);
+    if(wifiManager.autoConnect("Sahakiyat ESP32S3", "zxcvbnml")) {
+        lcd.setCursor(0,1) ;
         lcd.print("Got Wifi") ;
+        delay(1000);
         while (!client.connected()) {
-            client.setServer(mqtt_broker, mqtt_port);
+            client.setServer(custom_mqtt_server.getValue(), static_cast<uint16_t>(atoi(custom_mqtt_port.getValue())) );
             client.setCallback(callback);
             String client_id = "esp32-client-";
             client_id += String(WiFi.macAddress()) ;
@@ -180,15 +254,16 @@ void setup() {
                 delay(2000);
             }
         }
-        if(client.subscribe(topic)){
+        if(client.subscribe(custom_mqtt_topic.getValue())){
             Serial.print("Success full subscribe to Topic : ");
-            Serial.println(topic);
+            Serial.println(custom_mqtt_topic.getValue());
         } 
-        lcd.clear() ;
     } else {
         delay(2000);
         ESP.restart();
     }
+    delay(1000) ;
+    lcd.clear() ;
 }
 
 void loop() {
@@ -210,8 +285,9 @@ void loop() {
         dobmp() ;
         docpu() ;
         datadsent = digitalRead(12) == HIGH ? "1" : "0";
-        client.publish("Status", datadsent);
+        client.publish(custom_mqtt_publish.getValue(), datadsent);
         display.clearDisplay();
+        Serial.println() ;
     }
     wifiManager.process();
     client.loop();
@@ -242,7 +318,7 @@ void callback(char *topic, byte *payload, unsigned int length) {
 }
 
 void dotemp() {
-    int lsv = analogRead(TTP223) ;
+    int lsv = analogRead(TEMP6000) ;
     Serial.print("temt6000  : ") ;
     Serial.println(lsv) ;
 }
@@ -328,14 +404,14 @@ void dortc() {
     now = rtc.now() ;
     char timeBuffer[17];
     char dateBuffer[17];
-    DateTime localTime = now + TimeSpan(TIMEZONE_OFFSET * 3600);
+    DateTime localTime = now + TimeSpan(atoi(custom_timezone.getValue()) * 3600);
     snprintf(timeBuffer, sizeof(timeBuffer), "Time: %02d:%02d:%02d", localTime.hour(), localTime.minute(), localTime.second());
     snprintf(dateBuffer, sizeof(dateBuffer), "Date: %02d/%02d/%04d", localTime.day(), localTime.month(), localTime.year());
     lcd.setCursor(0,0);
     lcd.print(timeBuffer);
     lcd.setCursor(0,1);
     lcd.print(dateBuffer);
-}
+}    
 
 void doled() {
     if(l > 8) {
@@ -365,4 +441,21 @@ void docpu() {
     Serial.print("Temp onBoard      = ") ;
     Serial.print(temp_celsius) ;
     Serial.println("°C") ;
+}
+
+void saveParamsCallback () {
+    Serial.println("Get Params:");
+    WiFiManagerParameter* parameters[] = {
+        &custom_mqtt_server,
+        &custom_mqtt_port,
+        &custom_mqtt_topic,
+        &custom_mqtt_publish,
+        &custom_timezone
+    };
+    
+    for(int i = 0; i < 5; i++) {
+        Serial.print(parameters[i]->getID()) ; // Print the ID
+        Serial.print(" : ") ;
+        Serial.println(parameters[i]->getValue()) ; // Print the value
+    }
 }
