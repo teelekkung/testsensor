@@ -9,23 +9,40 @@
 #include <WiFiManager.h>
 #include <PubSubClient.h>
 
+#ifdef useesp32
+#define TEMP6000    32
+#define TTP223      33
+#define RGB_PIN     23
+#define LED_PWM     14
+#define ahtbmpsda   12
+#define ahtbmpscl   13
+#define i2clcdsda   21
+#define i2clcdscl   22
+#define ledbit1     25
+#define ledbit2     26
+#define ledbit3     27
+#endif
+#ifdef useesp32s3
 #define TEMP6000    4
 #define TTP223      5
 #define RGB_PIN     6
 #define LED_PWM     7
-#define RGB_NUMS    8
 #define ahtbmpsda   8
 #define ahtbmpscl   9
 #define i2clcdsda   10
-#define i2clcdscl   11 
-#define i2clcdaddr  0x25
+#define i2clcdscl   11
 #define ledbit1     15
 #define ledbit2     16
 #define ledbit3     17
+#endif
+
+#define RGB_NUMS    8
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
 #define OLED_RESET     -1 // Reset pin # (or -1 if sharing Arduino reset pin)
 #define SCREEN_ADDRESS 0x3C ///< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32
+#define i2clcdaddr  0x25
+
 // #define debug
 void callback(char *topic, byte *payload, unsigned int length) ;
 void dotemp(), doaht(), dobmp(), dorgb(), dortc(), doled(), dopwm(), docpu(),saveParamsCallback() ;
